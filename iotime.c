@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 int main(int argc, char** argv)
 {
@@ -16,12 +17,27 @@ int main(int argc, char** argv)
 	/*dump file for using the write/fwrite stuff.*/
 	FILE * dump = NULL;
 
+	/*file descriptor for dump file*/
+	int dump_fd;
+
 	/*structs to hold time data for each run of write/frwite*/
 	struct timeval * before_time;
 	struct timeval * after_time;
 
-	/*hold the current number of bytes to write to disk!*/
+	/*hold the current size we're using to write to disk*/
 	int write_size;
+
+	/*hold number of things of the size to write to the disk*/
+	int num_write;
+
+	/*number of times to call write*/
+	int write_loop;
+
+	/*String to hold file names! reusable!*/
+	char * filename;
+
+	/*String to get a relative path!*/
+	char * relpath = "./";
 
 	/*
  	 * Buffer for write - doesn't have any content,
@@ -44,28 +60,28 @@ int main(int argc, char** argv)
 	}
 
 	/*Try to open up the input file*/
-	input = fopen(argv[0], "r");
+	filename = malloc(strlen(argv[0]) + strlen(relpath) + 1);
+	filename = strncat(filename, relpath, strlen(relpath));
+	filename = strncat(filename, argv[0], strlen(argv[0]));
+	input = fopen(filename, "r");
 	if(input == NULL)
 	{
 		perror("Error on opening input file - ");
 		exit(EXIT_FAILURE);
 	}
+	free(filename);
 
 	/*Open up the output file*/
+	filename = malloc(strlen(argv[1]) + strlen(relpath) + 1);
+	filename = strncat(filename, argv[1], strlen(argv[1]));
+	filename = strncat(filename, relpath, strlen(relpath));
 	output = fopen(argv[1], "w");
 	if(output == NULL)
 	{
 		perror("Error on opening/creating output file - ");
 		exit(EXIT_FAILURE);
 	}
-
-	/*Open up the dump file*/
-	dump = fopen("dump", "w");
-	if(dump == NULL)
-	{
-		perror("Error on opening dump file - ");
-		exit(EXIT_FAILURE);
-	}
+	free(filename);
 
 	/*initialize our time structs*/
 	before_time = malloc(sizeof(struct timeval));
@@ -82,6 +98,7 @@ int main(int argc, char** argv)
 	 */
 	while(fscanf_return >= 0 && fscanf_return != EOF)
 	{
+		int i;
 		/*Read in the size to write!*/
 		fscanf_return = fscanf(input, "%i", &write_size);
 		fprintf(output, "Doing 10 writes of size %i", write_size);
@@ -95,7 +112,12 @@ int main(int argc, char** argv)
 				perror("Error on gettimeofday - ");
 				exit(EXIT_FAILURE);
 			}
-			write(fileno(dump), write_buffer, write_size);
+			/*open the file*/
+			dump_fd = fileno(dump);
+			for(i = 0; i < write_loop, i++)
+			{
+				write(dump_fd, write_buffer, write_size);
+			}
 			gettimeofday_return = gettimeofday(after_time, NULL);
 			if(gettimeofday_return == -1)
 			{
@@ -104,13 +126,21 @@ int main(int argc, char** argv)
 			}
 			fprintf(output, "write %d: From %d seconds %d microseconds to %d seconds %d microseconds\n", count, (int)before_time->tv_sec, (int)before_time->tv_usec, (int)after_time->tv_sec, (int)after_time->tv_usec);
 			/*And here we use fwrite*/
+			/*calculate the number of things to write*/
+			num_write = 134217728/write_size;
+
+			/*create the file name!*/
+			
+
 			gettimeofday_return = gettimeofday(before_time, NULL);
 			if(gettimeofday_return == -1)
 			{
 				perror("Error on gettimeofday - ");
 				exit(EXIT_FAILURE);
 			}
-			fwrite(write_buffer, 1, write_size, dump);
+			/*open the file*/
+			fopen
+			fwrite(write_buffer, write_size, num_write, dump);
 			gettimeofday_return = gettimeofday(after_time, NULL);
 			if(gettimeofday_return == -1)
 			{
@@ -123,5 +153,7 @@ int main(int argc, char** argv)
 	}
 	/*clean up our toys when we're done*/
 	free(write_buffer);
+	free(after_time);
+	free(before_time);
 	return return_value;
 }
