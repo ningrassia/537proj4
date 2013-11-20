@@ -158,7 +158,7 @@ FAILURE);
 				perror("Error on gettimeofday - ");
 				exit(EXIT_FAILURE);
 			}
-			fprintf(output, "write %d: From %d seconds %d microseconds to %d seconds %d microseconds\n", count, (int)before_time->tv_sec, (int)before_time->tv_usec, (int)after_time->tv_sec, (int)after_time->tv_usec);
+			fprintf(output, "write %d: From %d seconds %d microseconds to %d seconds %d microseconds with %d calls to write\n", count, (int)before_time->tv_sec, (int)before_time->tv_usec, (int)after_time->tv_sec, (int)after_time->tv_usec, num_write);
 			/*And here we use fwrite*/
 			gettimeofday_return = gettimeofday(before_time, NULL);
 			if(gettimeofday_return == -1)
@@ -193,7 +193,7 @@ FAILURE);
 				perror("Error on gettimeofday - ");
 				exit(EXIT_FAILURE);
 			}
-			fprintf(output, "fwrite %d: From %d seconds %d microseconds to %d seconds %d microseconds\n", count, (int)before_time->tv_sec, (int)before_time->tv_usec, (int)after_time->tv_sec, (int)after_time->tv_usec);
+			fprintf(output, "fwrite %d: From %d seconds %d microseconds to %d seconds %d microseconds with 1 call to fwrite\n", count, (int)before_time->tv_sec, (int)before_time->tv_usec, (int)after_time->tv_sec, (int)after_time->tv_usec);
 
 		}
 	}
