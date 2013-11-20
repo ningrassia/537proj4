@@ -5,10 +5,13 @@ Project 4 for cs 537 - I/O timing!
 
 Let's allow the user to specify what writes should take place, and where to output the timing info.
 
-TODO:
+DONE:
 Fix the looping structure
 Open/close files within each thing.
 Generate temp filenames with tempnam!
+
+TODO:
+Maybe make the output the time elapsed? not sure how to deal with the split time stuff.
 
 Extra credit ideas:
 Print out some file system info with the time stuff.

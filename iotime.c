@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/types.h>
+
+#define 128_MEG 134217728
 
 int main(int argc, char** argv)
 {
@@ -51,6 +54,12 @@ int main(int argc, char** argv)
 	/*return values for functions*/
 	int fscanf_return;
 	int gettimeofday_return;
+	int close_return;
+	int fclose_return;
+	ssize_t write_return;
+
+	/*loop counter*/
+	int i;
 
 	/*We need to specify an input and output file!*/
 	if(argc != 2)
@@ -87,6 +96,9 @@ int main(int argc, char** argv)
 	before_time = malloc(sizeof(struct timeval));
 	after_time = malloc(sizeof(struct timeval));
 
+	/*make a big huge buffer to write from*/
+	write_buffer = malloc(128_MEG);
+
 	/*
 	 * Here's the meat of the program.
 	 * First, we read in a value from the input file
@@ -95,14 +107,16 @@ int main(int argc, char** argv)
 	 * After, we use fwrite.
 	 * We repeat the write/fwrite process 10 times.
 	 * Then we start again.
+	 *
 	 */
 	while(fscanf_return >= 0 && fscanf_return != EOF)
 	{
-		int i;
+
 		/*Read in the size to write!*/
 		fscanf_return = fscanf(input, "%i", &write_size);
 		fprintf(output, "Doing 10 writes of size %i", write_size);
-		write_buffer = realloc(write_buffer, write_size);
+		/*calculate the number of times to do the write*/
+		num_write = 128_MEG/write_size;
 		for(count = 0; count < 10; count++)
 		{
 			/*Here we use write*/
@@ -113,10 +127,30 @@ int main(int argc, char** argv)
 				exit(EXIT_FAILURE);
 			}
 			/*open the file*/
-			dump_fd = fileno(dump);
-			for(i = 0; i < write_loop, i++)
+			dump_fd = open(tempnam("/tmp/", "dump"));
+			if(dump_fd < 0)
 			{
-				write(dump_fd, write_buffer, write_size);
+				perror("Error on open - ");
+				exit(EXIT_FAILURE);
+
+			}
+			/*write to the file with a size of the buffer write_loop times!)*/
+			for(i = 0; i < num_write, i++)
+			{
+				write_return = write(dump_fd, write_buffer, write_size);
+				if(write_return < 0)
+				{
+					perror("Error on write - ");
+					exit(EXIT_FAILURE);
+				}
+			}
+			/*close the file*/
+			close_return = close(dump_fd);
+			if(close_return < 0)
+			{
+				perror("Error on close - ");
+				exit(EXIT_		write_buffer = realloc(write_buffer, write_size);
+FAILURE);
 			}
 			gettimeofday_return = gettimeofday(after_time, NULL);
 			if(gettimeofday_return == -1)
@@ -126,12 +160,6 @@ int main(int argc, char** argv)
 			}
 			fprintf(output, "write %d: From %d seconds %d microseconds to %d seconds %d microseconds\n", count, (int)before_time->tv_sec, (int)before_time->tv_usec, (int)after_time->tv_sec, (int)after_time->tv_usec);
 			/*And here we use fwrite*/
-			/*calculate the number of things to write*/
-			num_write = 134217728/write_size;
-
-			/*create the file name!*/
-			
-
 			gettimeofday_return = gettimeofday(before_time, NULL);
 			if(gettimeofday_return == -1)
 			{
@@ -139,8 +167,26 @@ int main(int argc, char** argv)
 				exit(EXIT_FAILURE);
 			}
 			/*open the file*/
-			fopen
+			dump = fopen(tempnam("/tmp/", "dump"));
+			if(dump == NULL)
+			{
+				perror("Error on fopen - ");
+				exit(EXIT_FAILURE);
+			}
+			/*write to the file*/
 			fwrite(write_buffer, write_size, num_write, dump);
+			if(ferror(dump))
+			{
+				perror("Error on fwrite - ");
+				exit(EXIT_FAILURE);
+			}
+			/*close the file*/
+			fclose_return = fclose(dump);
+			if(fclose_return < 0)
+			{
+				perror("Error on fclose - ");
+				exit(EXIT_FAILURE);
+			}
 			gettimeofday_return = gettimeofday(after_time, NULL);
 			if(gettimeofday_return == -1)
 			{
