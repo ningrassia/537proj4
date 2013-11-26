@@ -199,7 +199,7 @@ int main(int argc, char** argv)
 			}
 			/*find the elapsed time! yay macros*/
 			timersub(after_time, before_time, elapsed_time);
-			fprintf(output, "fwrite %d: %d seconds %d microseconds with 1 call to fwrite\n", count, (int)elapsed_time->tv_sec, (int)elapsed_time->tv_usec);
+			fprintf(output, "fwrite %d: %d seconds %d microseconds with %d call to fwrite\n", count, (int)elapsed_time->tv_sec, (int)elapsed_time->tv_usec, num_write);
 
 			/*write to our output file after each run just to be safe/lazy*/
 			fflush(output);
