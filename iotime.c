@@ -176,7 +176,7 @@ int main(int argc, char** argv)
 				exit(EXIT_FAILURE);
 			}
 			/*write to the file*/
-			for(i = 0, i < num_write, i++){
+			for(i = 0; i < num_write; i++){
 				fwrite(write_buffer, write_size, 1, dump);
 			}
 			if(ferror(dump))
