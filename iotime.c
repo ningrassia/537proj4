@@ -109,11 +109,11 @@ int main(int argc, char** argv)
 	 * Then we start again.
 	 *
 	 */
+
+	/*Read in the size to write!*/
+	fscanf_return = fscanf(input, "%i", &write_size);
 	while(fscanf_return >= 0 && fscanf_return != EOF)
 	{
-
-		/*Read in the size to write!*/
-		fscanf_return = fscanf(input, "%i", &write_size);
 		printf("Doing 10 writes of size %i\n", write_size);
 		/*calculate the number of times to do the write*/
 		num_write = ONETWOEIGHTMEG/write_size;
@@ -203,7 +203,7 @@ int main(int argc, char** argv)
 
 			/*write to our output file after each run just to be safe/lazy*/
 			fflush(output);
-
+			fscanf_return = fscanf(input, "%i", &write_size);
 		}
 	}
 	/*clean up our toys when we're done*/
