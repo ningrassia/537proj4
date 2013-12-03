@@ -160,6 +160,7 @@ int main(int argc, char** argv)
 			}
 			timersub(after_time, before_time, elapsed_time);
 			fprintf(output, "write %d: %d seconds %d microseconds with %d calls to write\n", count, (int)elapsed_time->tv_sec, (int)elapsed_time->tv_usec, num_write);
+			fflush(output);		
 			/*And here we use fwrite*/
 			printf("fwrite %d of size %d\n", count, write_size);
 			gettimeofday_return = gettimeofday(before_time, NULL);
@@ -203,8 +204,8 @@ int main(int argc, char** argv)
 
 			/*write to our output file after each run just to be safe/lazy*/
 			fflush(output);
-			fscanf_return = fscanf(input, "%i", &write_size);
 		}
+		fscanf_return = fscanf(input, "%i", &write_size);
 	}
 	/*clean up our toys when we're done*/
 	fclose(input);
