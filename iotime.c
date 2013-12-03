@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 	int num_write;
 
 	/*Buffer for write - doesn't have any content, just to make sure we stay in our space.*/
-	void * write_buffer;
+	void * write_buffer = NULL;
 
 	/*holds the number of times we've done the writes.*/
 	int count;
