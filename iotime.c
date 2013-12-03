@@ -41,14 +41,14 @@ int main(int argc, char** argv)
 	/*String to get a relative path!*/
 	char * relpath = "./";
 
-	/*
- 	 * Buffer for write - doesn't have any content,
- 	 * just to make sure we stay in our space.
- 	 */
+	/*Buffer for write - doesn't have any content, just to make sure we stay in our space.*/
 	void * write_buffer;
 
 	/*holds the number of times we've done the writes.*/
 	int count;
+
+	/*holds the temporary filename so we can unlink it when we're done!*/
+	char * tempfilename;
 
 	/*return values for functions*/
 	int fscanf_return;
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 	elapsed_time = malloc(sizeof(struct timeval));
 
 	/*make a big huge buffer to write from*/
-	write_buffer = malloc(ONETWOEIGHTMEG);
+	write_buffer = malloc(64*1024);
 
 	/*
 	 * Here's the meat of the program.
@@ -114,6 +114,7 @@ int main(int argc, char** argv)
 	fscanf_return = fscanf(input, "%i", &write_size);
 	while(fscanf_return >= 0 && fscanf_return != EOF)
 	{
+		/*Create the buffer to read from*/
 		printf("Doing 10 writes of size %i\n", write_size);
 		/*calculate the number of times to do the write*/
 		num_write = ONETWOEIGHTMEG/write_size;
@@ -121,19 +122,20 @@ int main(int argc, char** argv)
 		{
 			/*Here we use write*/
 			printf("write %d of size %d\n", count, write_size);
-			gettimeofday_return = gettimeofday(before_time, NULL);
-			if(gettimeofday_return == -1)
-			{
-				perror("Error on gettimeofday - ");
-				exit(EXIT_FAILURE);
-			}
 			/*open the file and make sure to make it a clean file!*/
-			dump_fd = open(tempnam("/tmp/", "dump"), O_WRONLY | O_CREAT | O_TRUNC | O_EXCL);
+			tempfilename = tempnam("/tmp/", "dump");
+			dump_fd = open(tempfilename, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL, 0660);
 			if(dump_fd < 0)
 			{
 				perror("Error on open - ");
 				exit(EXIT_FAILURE);
 
+			}
+			gettimeofday_return = gettimeofday(before_time, NULL);
+			if(gettimeofday_return == -1)
+			{
+				perror("Error on gettimeofday - ");
+				exit(EXIT_FAILURE);
 			}
 			/*write to the file with a size of the buffer write_loop times!)*/
 			for(i = 0; i < num_write; i++)
@@ -145,6 +147,12 @@ int main(int argc, char** argv)
 					exit(EXIT_FAILURE);
 				}
 			}
+			gettimeofday_return = gettimeofday(after_time, NULL);
+			if(gettimeofday_return == -1)
+			{
+				perror("Error on gettimeofday - ");
+				exit(EXIT_FAILURE);
+			}
 			/*close the file*/
 			close_return = close(dump_fd);
 			if(close_return < 0)
@@ -152,37 +160,43 @@ int main(int argc, char** argv)
 				perror("Error on close - ");
 				exit(EXIT_FAILURE);
 			}
-			gettimeofday_return = gettimeofday(after_time, NULL);
-			if(gettimeofday_return == -1)
-			{
-				perror("Error on gettimeofday - ");
-				exit(EXIT_FAILURE);
-			}
+			/*delete the file to maybe prevent weird slowdown.*/
+			unlink(tempfilename);
 			timersub(after_time, before_time, elapsed_time);
 			fprintf(output, "write %d: %d seconds %d microseconds with %d calls to write\n", count, (int)elapsed_time->tv_sec, (int)elapsed_time->tv_usec, num_write);
-			fflush(output);		
+			fflush(output);
+		}
+		for(count = 0; count < 10; count++)
+		{
 			/*And here we use fwrite*/
 			printf("fwrite %d of size %d\n", count, write_size);
+			/*open the file*/
+			tempfilename = tempnam("/tmp/", "dump");
+			dump = fopen(tempfilename, "w");
+			if(dump == NULL)
+			{
+				perror("Error on fopen - ");
+				exit(EXIT_FAILURE);
+			}
 			gettimeofday_return = gettimeofday(before_time, NULL);
 			if(gettimeofday_return == -1)
 			{
 				perror("Error on gettimeofday - ");
 				exit(EXIT_FAILURE);
 			}
-			/*open the file*/
-			dump = fopen(tempnam("/tmp/", "dump"), "w");
-			if(dump == NULL)
-			{
-				perror("Error on fopen - ");
-				exit(EXIT_FAILURE);
-			}
 			/*write to the file*/
 			for(i = 0; i < num_write; i++){
-				fwrite(write_buffer, write_size, 1, dump);
+				fwrite(write_buffer, 1, write_size, dump);
 			}
 			if(ferror(dump))
 			{
 				perror("Error on fwrite - ");
+				exit(EXIT_FAILURE);
+			}
+			gettimeofday_return = gettimeofday(after_time, NULL);
+			if(gettimeofday_return == -1)
+			{
+				perror("Error on gettimeofday - ");
 				exit(EXIT_FAILURE);
 			}
 			/*close the file*/
@@ -192,12 +206,8 @@ int main(int argc, char** argv)
 				perror("Error on fclose - ");
 				exit(EXIT_FAILURE);
 			}
-			gettimeofday_return = gettimeofday(after_time, NULL);
-			if(gettimeofday_return == -1)
-			{
-				perror("Error on gettimeofday - ");
-				exit(EXIT_FAILURE);
-			}
+			/*delete file to prevent weird errors.*/
+			unlink(tempfilename);
 			/*find the elapsed time! yay macros*/
 			timersub(after_time, before_time, elapsed_time);
 			fprintf(output, "fwrite %d: %d seconds %d microseconds with %d call to fwrite\n", count, (int)elapsed_time->tv_sec, (int)elapsed_time->tv_usec, num_write);
